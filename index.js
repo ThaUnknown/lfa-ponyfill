@@ -96,7 +96,7 @@ function fromMetadata ({ fonts, family }) {
   return fontData
 }
 
-/** @type {FontData[] | null} */
+/** @type {Map<string, FontData> | null} */
 let fontCache = null
 
 async function getFontCache () {
@@ -104,7 +104,11 @@ async function getFontCache () {
     // import async, as this is absolutely massive and potentially laggy
     // also allows for code splitting
     const fonts = await import('./fonts.js')
-    fontCache = fonts.default.flatMap(familyMetadata => fromMetadata(familyMetadata))
+    fontCache = new Map()
+    const fontsDatas = fonts.default.flatMap(familyMetadata => fromMetadata(familyMetadata))
+    for (const font of fontsDatas) {
+      fontCache.set(font.postscriptName.toLowerCase().replace(/-/g, ''), font)
+    }
   }
   return fontCache
 }
@@ -118,7 +122,7 @@ export default async function queryLocalFonts ({ postscriptNames } = {}) {
   if (postscriptNames.length === 0) return []
 
   return postscriptNames.reduce((acc, postscriptName) => {
-    const font = fontList.find(font => font.postscriptName.toLowerCase().replace(/-/g, '') === postscriptName.toLowerCase().replace(/regular$/, '').replace(/-reg$/, '').replace(/[- ]/g, ''))
+    const font = fontList.get(postscriptName.toLowerCase().replace(/regular$/, '').replace(/-reg$/, '').replace(/[- ]/g, ''))
     if (font) acc.push(font)
     return acc
   }, /** @type {FontData[]} */([]))

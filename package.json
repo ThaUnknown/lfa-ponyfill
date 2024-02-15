@@ -1,6 +1,6 @@
 {
   "name": "lfa-ponyfill",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Local Font Access Ponyfill for any environment",
   "main": "index.js",

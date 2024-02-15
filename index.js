@@ -1,4 +1,4 @@
-const SUPPORTS = 'queryLocalFonts' in globalThis
+const SUPPORTS = 'queryLocalFonts' in globalThis && globalThis.queryLocalFonts
 
 const WEIGHT_MAP = {
   100: 'Thin',
@@ -120,7 +120,7 @@ async function getFontCache () {
  * @returns {Promise<FontData[]>}
  */
 export default async function queryLocalFonts ({ postscriptNames } = {}) {
-  if (SUPPORTS) return queryLocalFonts({ postscriptNames })
+  if (SUPPORTS) return SUPPORTS({ postscriptNames })
   const fontCache = await getFontCache()
 
   if (!postscriptNames) return fontCache.all

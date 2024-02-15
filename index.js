@@ -22,6 +22,7 @@ class FontData {
   #weight
   #isItalic
 
+  /** @param {{family: string, weight: string, isItalic: boolean, weightName: string}} param0 */
   constructor ({ family, weight, isItalic, weightName }) {
     this.family = family
     this.#weight = weight
@@ -105,20 +106,22 @@ async function getFontCache () {
     // also allows for code splitting
     const fonts = await import('./fonts.js')
     fontCache = new Map()
-    const fontsDatas = fonts.default.flatMap(familyMetadata => fromMetadata(familyMetadata))
-    for (const font of fontsDatas) {
+    for (const font of fonts.default.flatMap(familyMetadata => fromMetadata(familyMetadata))) {
       fontCache.set(font.postscriptName.toLowerCase().replace(/-/g, ''), font)
     }
   }
   return fontCache
 }
 
-/** @param {{postscriptNames?: string[]}} param0 */
+/**
+ * @param {{postscriptNames?: string[]}} param0
+ * @returns {Promise<FontData[]>}
+ */
 export default async function queryLocalFonts ({ postscriptNames } = {}) {
   if (SUPPORTS) return queryLocalFonts({ postscriptNames })
   const fontList = await getFontCache()
 
-  if (!postscriptNames) return fontList
+  if (!postscriptNames) return [...fontList.values()]
   if (postscriptNames.length === 0) return []
 
   return postscriptNames.reduce((acc, postscriptName) => {

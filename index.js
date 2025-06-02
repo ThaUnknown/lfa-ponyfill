@@ -119,8 +119,7 @@ async function getFontCache () {
  * @param {{postscriptNames?: string[]}} param0
  * @returns {Promise<FontData[]>}
  */
-export default async function queryLocalFonts ({ postscriptNames } = {}) {
-  if (SUPPORTS) return SUPPORTS({ postscriptNames })
+export async function queryRemoteFonts ({ postscriptNames } = {}) {
   const fontCache = await getFontCache()
 
   if (!postscriptNames) return fontCache.all
@@ -131,4 +130,13 @@ export default async function queryLocalFonts ({ postscriptNames } = {}) {
     if (font) acc.push(font)
     return acc
   }, /** @type {FontData[]} */([]))
+}
+
+/**
+ * @param {{postscriptNames?: string[]}} param0
+ * @returns {Promise<FontData[]>}
+ */
+export default async function queryLocalFonts ({ postscriptNames } = {}) {
+  if (SUPPORTS) return SUPPORTS({ postscriptNames })
+  return queryRemoteFonts({ postscriptNames })
 }

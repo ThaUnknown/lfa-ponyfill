@@ -1,13 +1,22 @@
 {
   "name": "lfa-ponyfill",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "description": "Local Font Access Ponyfill for any environment",
   "main": "index.js",
   "scripts": {
     "update-font-list": "node ./updateFontList.js"
   },
-  "keywords": ["lfa", "ponyfill", "font", "local font access", "local font"],
+  "keywords": [
+    "lfa",
+    "ponyfill",
+    "font",
+    "local font access",
+    "local font",
+    "google fonts",
+    "font family",
+    "typeface"
+  ],
   "author": "ThaUnknown",
   "license": "MIT",
   "repository": {

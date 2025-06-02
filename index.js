@@ -58,18 +58,17 @@ class FontData {
   async blob () {
     const response = await fetch(`https://fonts.googleapis.com/css2?family=${this.family}:${this.#isItalic ? 'ital,' : ''}wght@${this.#isItalic ? '1,' : ''}${this.#weight}`)
     const css = await response.text()
-    // get first latin woff2 url from css
-    const latinURL = css.match(/\/\* latin \*\/[\s\S]+url\(([^)]+)\)/)?.[1]
-    if (latinURL) {
-      const response = await fetch(latinURL)
-      return response.blob()
-    }
-    // this is fallback for all weird fonts like asian ones
-    // TODO: what if some1 wants a japanse font but it includes latin? "Noto Sans JP"
-    const anyURL = css.match(/url\(([^)]+)\)/)?.[1]
-    if (anyURL) {
-      const response = await fetch(anyURL)
-      return response.blob()
+    const matches = [
+      /\/\* latin-ext \*\/[\s\S]+url\(([^)]+)\)/, // get first latin woff2 url from css
+      /\/\* latin \*\/[\s\S]+url\(([^)]+)\)/, // TODO: what if some1 wants a japanse font but it includes latin? "Noto Sans JP"
+      /url\(([^)]+)\)/
+    ]
+    for (const match of matches) {
+      const url = css.match(match)?.[1]
+      if (url) {
+        const response = await fetch(url)
+        if (response.ok) return response.blob()
+      }
     }
     throw new Error('Failed to load font blob')
   }

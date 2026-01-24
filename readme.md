@@ -1,6 +1,6 @@
 # Local Font Access Ponyfill
 
-Local Font Access API ponyfilled via Google Fonts API. Allows you to use LFA on any environment which supports `fetch`.
+Local Font Access API ponyfilled via Google Fonts API. Allows you to use LFA on any environment which supports `fetch` and ESM `import()`.
 
 ```js
 import queryLocalFonts from 'lfa-ponyfill'
@@ -9,7 +9,7 @@ import queryLocalFonts from 'lfa-ponyfill'
 const fonts = await queryLocalFonts({ postscriptNames: ['Roboto', 'Roboto-Bold'] })
 const blob = await fonts[0].blob()
 
-const all = await queryLocalFonts() // 3.4k fonts, 1.8k font families!
+const all = await queryLocalFonts() // >7.6k fonts, 1.9k font families!
 
 await queryLocalFonts({ postscriptNames: ['Rosario-Bold-Italic'] }) // specific style
 await queryLocalFonts({ postscriptNames: ['rosariobolditalic'] }) // this also works

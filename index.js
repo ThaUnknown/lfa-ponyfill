@@ -1,5 +1,7 @@
+// @ts-expect-error non-standard api
 const SUPPORTS = 'queryLocalFonts' in globalThis && globalThis.queryLocalFonts
 
+/** @type {{[weight: number]: string}} */
 const WEIGHT_MAP = {
   100: 'Thin',
   200: 'ExtraLight',
@@ -74,41 +76,40 @@ class FontData {
   }
 }
 
-/** @param {import('./typedef.d.ts').FamilyMetadata[0]} familyMetadata */
-function fromMetadata ({ fonts, family }) {
+/** @param {import('./typedef.d.ts').FamilyMetadata} familyMetadata */
+function fromMetadata ([family, sizes]) {
   const fontData = []
-  for (const _type of fonts) {
+  for (const _type of sizes) {
     // google likes to split their fonts into minimal parts, we'll try to get as wide of a range as possible, so if someone requests 'normal', they'll get all weights [if available]
-    // 1 or 104 or '104i' or '104..940' or '104..940i'
+    // 1 or '1i' or '1a10' or '1a10i'
     const type = '' + _type
     const isItalic = type.endsWith('i')
     const weight = type.replace('i', '')
-    if (weight === '1') continue
-    if (weight.includes('..')) {
-      const [min, max] = weight.split('..').map(Number)
+    if (weight.includes('a')) {
+      const [min, max] = weight.split('a').map(a => parseInt(a) * 100)
       for (let i = min; i <= max; i += 100) {
-        fontData.push(new FontData({ family, weight, isItalic, weightName: WEIGHT_MAP[(i / 100 | 0) * 100] }))
+        fontData.push(new FontData({ family: family, weight: `${min}..${max}`, isItalic, weightName: WEIGHT_MAP[i] }))
       }
     } else {
-      fontData.push(new FontData({ family, weight, isItalic, weightName: WEIGHT_MAP[(Number(weight) / 100 | 0) * 100] }))
+      fontData.push(new FontData({ family: family, weight: `${weight}00`, isItalic, weightName: WEIGHT_MAP[parseInt(weight) * 100] }))
     }
   }
   return fontData
 }
 
-/** @type {{map: Map<any, FontData>, all: FontData[]} | null} */
-let fontCache = null
+/** @type {Map<any, FontData>} */
+let fontCache = new Map()
 
 async function getFontCache () {
-  if (fontCache === null) {
+  if (fontCache.size === 0) {
     // import async, as this is absolutely massive and potentially laggy
     // also allows for code splitting
-    const fonts = await import('./fonts.js')
-    const all = fonts.default.flatMap(familyMetadata => fromMetadata(familyMetadata))
-    const map = new Map()
-    fontCache = { map, all }
-    for (const font of all) {
-      map.set(font.postscriptName.toLowerCase().replace(/-/g, ''), font)
+    // storing hardcoded objects is faster as json, https://v8.dev/blog/cost-of-javascript-2019#json
+    /** @type {{default: import('./typedef.d.ts').FamilyMetadata[]}} */
+    // @ts-expect-error override
+    const fonts = await import('./fonts.json', { with: { type: 'json' }})
+    for (const font of fonts.default.flatMap(familyMetadata => fromMetadata(familyMetadata))) {
+      fontCache.set(font.postscriptName.toLowerCase().replace(/-/g, ''), font)
     }
   }
   return fontCache
@@ -121,11 +122,11 @@ async function getFontCache () {
 export async function queryRemoteFonts ({ postscriptNames } = {}) {
   const fontCache = await getFontCache()
 
-  if (!postscriptNames) return fontCache.all
+  if (!postscriptNames) return [...fontCache.values()]
   if (postscriptNames.length === 0) return []
 
   return postscriptNames.reduce((acc, postscriptName) => {
-    const font = fontCache.map.get(postscriptName.toLowerCase().replace(/regular$/, '').replace(/-reg$/, '').replace(/[- ]/g, ''))
+    const font = fontCache.get(postscriptName.toLowerCase().replace(/regular$/, '').replace(/-reg$/, '').replace(/[- ]/g, ''))
     if (font) acc.push(font)
     return acc
   }, /** @type {FontData[]} */([]))

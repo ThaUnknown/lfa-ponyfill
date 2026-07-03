@@ -1,11 +1,14 @@
 {
   "name": "lfa-ponyfill",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Local Font Access Ponyfill for any environment",
   "main": "index.js",
   "scripts": {
-    "update-font-list": "node ./updateFontList.js"
+    "update-font-list": "node ./updateFontList.js",
+    "postinstall": "node ./updateFontList.js",
+    "prepare": "node ./updateFontList.js",
+    "test": "node ./test.js"
   },
   "keywords": [
     "lfa",
